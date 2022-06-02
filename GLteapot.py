@@ -60,8 +60,14 @@ Purpose: Loads the camera calibration file provided and returns the camera and
 """
 def getCameraMatrix():
         global camera_matrix, dist_coeff
-        with np.load('System.npz') as X:
-                camera_matrix, dist_coeff, _, _ = [X[i] for i in ('mtx','dist','rvecs','tvecs')]
+        # with np.load('System.npz') as X:
+        #         camera_matrix, dist_coeff, _, _ = [X[i] for i in ('mtx','dist','rvecs','tvecs')]
+        fx = 2000
+        fy = 2000
+        cx = 319.5
+        cy = 239.5
+        camera_matrix = np.array([[fx, 0, cx],[0,fy,cy],[0,0,1]],dtype = np.float32)
+        dist_coeff = np.array([0, 0, 0, 0 ,0],dtype = np.float32)
 
 
 
@@ -132,25 +138,31 @@ Purpose: It is the main callback function which is called again and
 def drawGLScene():
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         ar_list = []
-        ret, frame = cap.read()
+
+
+        #ret, frame = cap.read()
+        frame = cv2.imread(r'C:\Users\chris\Pictures\aruco_test.png')
+        ret = True
+
         if ret == True:
                 draw_background(frame)
                 glMatrixMode(GL_MODELVIEW)
                 glLoadIdentity()
+
                 ar_list = detect_markers(frame)
                 
                 for i in ar_list:
                         if i[0] == 8:
-                                overlay(frame, ar_list, i[0],"texture_1.png")
+                                overlay(frame, ar_list, i[0],r'C:\Users\chris\Pictures\floor_tile.png')
                         if i[0] == 2:
-                                overlay(frame, ar_list, i[0],"texture_2.png")
+                                overlay(frame, ar_list, i[0],r'C:\Users\chris\Pictures\floor_tile.png')
                         if i[0] == 7:
-                                overlay(frame, ar_list, i[0],"texture_3.png")
-                        if i[0] == 6:
-                                overlay(frame, ar_list, i[0],"texture_4.png")
+                                overlay(frame, ar_list, i[0],r'C:\Users\chris\Pictures\floor_tile.png')
+                        else:
+                                overlay(frame, ar_list, i[0],r'C:\Users\chris\Pictures\floor_tile.png')
 
                 cv2.imshow('frame', frame)
-                cv2.waitKey(1)
+                cv2.waitKey(100)
         glutSwapBuffers()
         
 ########################################################################
