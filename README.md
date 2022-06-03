@@ -6,6 +6,9 @@ pip install opencv-contrib-python
 pip install PyOpenGL-3.1.6-cp39-cp39-win_amd64.whl
 pip install Pillow
 pip install pygame
+
+pip install pywavefront
+pip install piglet
 ```
 
 - Generate aruco images online: https://chev.me/arucogen/

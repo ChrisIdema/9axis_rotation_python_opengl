@@ -31,7 +31,7 @@
 
 import numpy as np
 import cv2
-import cv2.aruco as aruco
+# import cv2.aruco as aruco
 import math
 from OpenGL.GL import *
 from OpenGL.GLU import *
@@ -141,7 +141,11 @@ def drawGLScene():
 
 
         #ret, frame = cap.read()
-        frame = cv2.imread(r'C:\Users\chris\Pictures\aruco_test.png')
+        # frame = cv2.imread(r'C:\Users\chris\Pictures\aruco_test.png')
+        frame = np.ones((480,320,3), np.uint8)*255
+        # print(frame.size)
+        # frame = np.ones()
+
         ret = True
 
         if ret == True:
@@ -149,17 +153,19 @@ def drawGLScene():
                 glMatrixMode(GL_MODELVIEW)
                 glLoadIdentity()
 
-                ar_list = detect_markers(frame)
+                overlay(frame, ar_list, 0,r'C:\Users\chris\Pictures\floor_tile.png')
+
+                # ar_list = detect_markers(frame)
                 
-                for i in ar_list:
-                        if i[0] == 8:
-                                overlay(frame, ar_list, i[0],r'C:\Users\chris\Pictures\floor_tile.png')
-                        if i[0] == 2:
-                                overlay(frame, ar_list, i[0],r'C:\Users\chris\Pictures\floor_tile.png')
-                        if i[0] == 7:
-                                overlay(frame, ar_list, i[0],r'C:\Users\chris\Pictures\floor_tile.png')
-                        else:
-                                overlay(frame, ar_list, i[0],r'C:\Users\chris\Pictures\floor_tile.png')
+                # for i in ar_list:
+                #         if i[0] == 8:
+                #                 overlay(frame, ar_list, i[0],r'C:\Users\chris\Pictures\floor_tile.png')
+                #         if i[0] == 2:
+                #                 overlay(frame, ar_list, i[0],r'C:\Users\chris\Pictures\floor_tile.png')
+                #         if i[0] == 7:
+                #                 overlay(frame, ar_list, i[0],r'C:\Users\chris\Pictures\floor_tile.png')
+                #         else:
+                #                 overlay(frame, ar_list, i[0],r'C:\Users\chris\Pictures\floor_tile.png')
 
                 cv2.imshow('frame', frame)
                 cv2.waitKey(100)
@@ -328,12 +334,22 @@ Purpose: Receives the ArUco information as input and overlays the 3D Model of a 
          however add your own code in this function.
 """
 def overlay(img, ar_list, ar_id, texture_file):
-        for x in ar_list:
-                if ar_id == x[0]:
-                        centre, rvec, tvec = x[1], x[2], x[3]
-                                                                                                
-        rmtx = cv2.Rodrigues(rvec)[0]                                                           #RETURNS ROTATION MATRIX FROM THE ROTATION VECTOR (MATRIX CALCULATED USING RODRIGUES FORMULA)
-                                                                                                                #WHICH CONVERTS AXIS-ANGLE REPRESENTATION INTO ROTATION MATRIX
+        # for x in ar_list:
+        #         if ar_id == x[0]:
+        #                 centre, rvec, tvec = x[1], x[2], x[3]
+
+        rvec = np.array([[[np.pi*0, np.pi*0, np.pi/2]]])
+        tvec = np.array([[[0, 0, 1000]]])
+
+        rmtx = cv2.Rodrigues(rvec)[0]  
+
+        # print(rvec)
+        # print(rmtx)  
+        # print(tvec)
+
+
+        #RETURNS ROTATION MATRIX FROM THE ROTATION VECTOR (MATRIX CALCULATED USING RODRIGUES FORMULA)                                                                                                           
+        #WHICH CONVERTS AXIS-ANGLE REPRESENTATION INTO ROTATION MATRIX
 
         #IN ORDER TO TRANSFORM FROM THE COORDINATE FRAME OF RENDERED OBJECT TO THE WORLD FRAME WE REQUIRE TRANSFORMATION MATRIX
         #IN THE FOLLOWING STEPS ROTATION MATRIX IS CONVERTED INTO REQUIRED TRANSFORMATION MATRICES IN THE FORMAT OPENGL WORKS
@@ -346,12 +362,13 @@ def overlay(img, ar_list, ar_id, texture_file):
         ###i-e VALUES OF tvecs ARE MANIPULATED USING LINEAR EQUATIONS, USING LINEAR EQUATION ENSURES PROPER SIZE OF TEAPOT FOR DIFFERENT POSITIONS OF MARKER IN Z-AXIS
         ###AND ALSO PROPERLY MAPS THE TRANSLATIONS IN X-AXIS AND Y-AXIS FOR ALL VALUES OF Z
 
-        mult = ((0.2*tvec[0][0][2])+200)/500                                                 #VALUE RETURNED BY LINEAR EQUATION, INDIPENDENT VAR IS THE POSITION OF MARKER IN Z-
-        sk = ((3.5*tvec[0][0][2])+1385)/680                                                  #THE VALUES RETURNED BY THESE TWO EQUATIONS ARE USED AHEAD FOR MAPPING
+        mult = ((0.2*tvec[0][0][2])+200)/500    #VALUE RETURNED BY LINEAR EQUATION, INDIPENDENT VAR IS THE POSITION OF MARKER IN Z-
+        sk = ((3.5*tvec[0][0][2])+1385)/680     #THE VALUES RETURNED BY THESE TWO EQUATIONS ARE USED AHEAD FOR MAPPING
 
         #COMBINIG ROTATION MATRIX AND TRANSLATION VECTOR TO GIVE TRANSFORMATION MATRIX
 
-        view_matrix = np.array([[rmtx[0][0],rmtx[0][1],rmtx[0][2],  sk*(tvec[0][0][0]/(tvec[0][0][2]))],                        #MAPPING(i-e manipulating values of tvec) OF VALUES USING LINEAR EQUATIONS
+        #MAPPING(i-e manipulating values of tvec) OF VALUES USING LINEAR EQUATIONS
+        view_matrix = np.array([[rmtx[0][0],rmtx[0][1],rmtx[0][2],  sk*(tvec[0][0][0]/(tvec[0][0][2]))], 
                         [rmtx[1][0],rmtx[1][1],rmtx[1][2],  (tvec[0][0][1]/100) -  (mult*( ( (1.5*tvec[0][0][1])+375)/360 ) )],
                         [rmtx[2][0],rmtx[2][1],rmtx[2][2], ((2*tvec[0][0][2])-1700)/400],
                         [0.0       ,0.0       ,0.0       ,1.0    ]])
@@ -360,10 +377,13 @@ def overlay(img, ar_list, ar_id, texture_file):
         view_matrix = view_matrix * INVERSE_MATRIX                                           
         view_matrix = np.transpose(view_matrix)
         
-        init_object_texture(texture_file)                                                       #FUNCTION TO SET THE texture_file TO THE TEXTURE ID
+        init_object_texture(texture_file)       #FUNCTION TO SET THE texture_file TO THE TEXTURE ID
         glPushMatrix()                                  
-        glLoadMatrixd(view_matrix)                                                              #LOADS THE VIEW MATRIX IN CURRENT STACK OF MATRICES
-        glutSolidTeapot(0.5)                                                                    #FUNCTION TO RENDER A TEAPOT
+        glLoadMatrixd(view_matrix)              #LOADS THE VIEW MATRIX IN CURRENT STACK OF MATRICES
+        glutSolidTeapot(0.5)                    #FUNCTION TO RENDER A TEAPOT
+        # glutWireTeapot(0.5)
+        # glutSolidCone(1,0.5,20,20)
+
         glPopMatrix()
 
 ########################################################################
