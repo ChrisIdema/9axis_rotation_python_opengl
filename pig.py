@@ -10,19 +10,56 @@ from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
 
+import serial
+import json
+
+# from tinyQuaternion import Quaternion
+# import numpy as np
+
+ser = serial.Serial('COM4',115200,timeout=0)
+
 window = pyglet.window.Window(resizable=True)
 window.projection = pyglet.window.Projection3D(zfar=1000)
 scene = pywavefront.Wavefront(path)
 
+buffer = ''
+
+def timer(self):
+
+    global buffer
+    # lines =  ser.readlines(-1)
+    # print('lines:')
+    # print(lines)
+    # if 
+    
+    len = ser.in_waiting
+    if len > 0:
+        string = ser.read(len).decode("utf-8") 
+        buffer += string
+        last = buffer.rfind('\n')
+        if last >= 0:
+            second_last = buffer[0:last].rfind('\n')
+            if second_last >= 0:
+                last_line = buffer[second_last+1:last] # extract last line starting and ending with newline
+                buffer = buffer[last:-1] # delete everything before last newline
+                q = json.loads(last_line)
+                # print(q)
+                # q = Quaternion(q=np.array([q['quat_w'],q['quat_w'],q['quat_w'],q['quat_w']]))
+                # print(q)
+
+
+
+
 @window.event
 def on_draw():
+    # print('draw')
     window.clear()
     visualization.draw(scene)
 
 @window.event
 def on_key_press(symbol, modifiers):
 
-    glTranslated(0, 0, 200)   
+    # glTranslated(0, 0, 200)   
 
     if symbol == key.G:
         glRotated(22,0,1,0)
@@ -42,7 +79,14 @@ def on_key_press(symbol, modifiers):
     if symbol == key.M:
         glRotated(-22,0,0,1)
         # glTranslated(0, -25, 0)   
-    glTranslated(0, 0, -200)
+    if symbol == key.Q:
+        glPopMatrix()
+        glPushMatrix();
+        glTranslated(0, 0, 200)   
+        glRotated(-22,0,1,0)
+        glTranslated(0, 0, -200)
+
+    # glTranslated(0, 0, -200)
 
 if __name__ == "__main__":
     # Setando estados para visualização da câmera
@@ -79,5 +123,6 @@ if __name__ == "__main__":
     # mvm = glGetFloatv(GL_MODELVIEW_MATRIX, a)
     # print(list(a))
  
+    pyglet.clock.schedule_interval(timer, 1/10);
 
     pyglet.app.run()
