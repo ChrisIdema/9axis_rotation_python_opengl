@@ -13,8 +13,8 @@ from OpenGL.GLU import *
 import serial
 import json
 
-# from tinyQuaternion import Quaternion
-# import numpy as np
+from squaternion import Quaternion
+import numpy as np
 
 ser = serial.Serial('COM4',115200,timeout=0)
 
@@ -43,9 +43,48 @@ def timer(self):
                 last_line = buffer[second_last+1:last] # extract last line starting and ending with newline
                 buffer = buffer[last:-1] # delete everything before last newline
                 q = json.loads(last_line)
+                # q = Quaternion(q['quat_w'],q['quat_x'],q['quat_y'],q['quat_z'])
+                q = Quaternion(q['quat_w'],q['quat_x'],q['quat_y'],q['quat_z'])
                 # print(q)
-                # q = Quaternion(q=np.array([q['quat_w'],q['quat_w'],q['quat_w'],q['quat_w']]))
-                # print(q)
+
+                glPopMatrix()
+                glPushMatrix()
+
+                # e = q.to_euler(degrees=True)
+                # print(e)
+
+                glTranslated(0, 0, 200)   
+                
+                # glRotated(180,1,0,0)
+
+                # glRotated(e[0],1,0,0)
+                # glRotated(e[1],0,1,0)
+                # glRotated(e[2],0,0,1)
+
+                # r = q.to_rot()
+                r = np.array(q.to_rot())
+
+                # r4x4 = np.array([[r[0,0],r[0,1],r[0,2],0],
+                #                  [r[1,0],r[1,1],r[1,2],0],
+                #                  [r[2,0],r[2,1],r[2,2],0],
+                #                  [0,0,0,1]])
+
+                r4x4 = np.array([[r[0,0],r[1,0],r[2,0],0],
+                                 [r[0,1],r[1,1],r[2,1],0],
+                                 [r[0,2],r[1,2],r[2,2],0],
+                                 [0,0,0,1]])
+
+
+
+                # print(r)       
+                # print(r4x4)    
+                
+                # glMultMatrixf(r)
+
+                glMultMatrixf(r4x4)
+
+                glTranslated(0, 0, -200)
+
 
 
 
@@ -122,7 +161,12 @@ if __name__ == "__main__":
     # a = (GLfloat * 16)()
     # mvm = glGetFloatv(GL_MODELVIEW_MATRIX, a)
     # print(list(a))
+
+    glPushMatrix();
+
  
     pyglet.clock.schedule_interval(timer, 1/10);
+
+
 
     pyglet.app.run()
