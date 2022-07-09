@@ -24,6 +24,8 @@ scene = pywavefront.Wavefront(path)
 
 buffer = ''
 
+init_yaw = None
+
 def timer(self):
 
     global buffer
@@ -43,45 +45,56 @@ def timer(self):
                 last_line = buffer[second_last+1:last] # extract last line starting and ending with newline
                 buffer = buffer[last:-1] # delete everything before last newline
                 q = json.loads(last_line)
-                # q = Quaternion(q['quat_w'],q['quat_x'],q['quat_y'],q['quat_z'])
                 q = Quaternion(q['quat_w'],q['quat_x'],q['quat_y'],q['quat_z'])
-                # print(q)
 
+                # delete current matrix and replace with copy of initialized matrix:
                 glPopMatrix()
                 glPushMatrix()
 
-                # e = q.to_euler(degrees=True)
+                # q_flip = Quaternion.from_angle_axis(180, [1,0,0],degrees=True)
+                # q = q*q_flip
+
+                e = q.to_euler(degrees=True)
                 # print(e)
 
+                # 
+                global init_yaw
+                if init_yaw == None:
+                    init_yaw = e[2]
+                    print(q)
+                    print(init_yaw)
+                    # q2 = Quaternion.from_angle_axis(-init_yaw, [0,0,1],degrees=True)
+                    # print(q2)
+
+                # print(q)
+
+
                 glTranslated(0, 0, 200)   
-                
-                # glRotated(180,1,0,0)
 
-                # glRotated(e[0],1,0,0)
-                # glRotated(e[1],0,1,0)
-                # glRotated(e[2],0,0,1)
+                # glRotated(init_yaw,0,0,1) #this doesn't work, it rotates using euler angles and it needs to rotate around the z axis
 
-                # r = q.to_rot()
+                # q2 = Quaternion.from_angle_axis(-180, [0,0,1],degrees=True)
+                # q2 = Quaternion.from_euler(0,0,90,degrees=True)
+                # print(q2)
+                # print(q)
+                # q = q*q2
+                # print(q)
+
+                # q3 = Quaternion.from_angle_axis(180, [0,1,0],degrees=True)
+                # q = q*q3
+
                 r = np.array(q.to_rot())
-
-                # r4x4 = np.array([[r[0,0],r[0,1],r[0,2],0],
-                #                  [r[1,0],r[1,1],r[1,2],0],
-                #                  [r[2,0],r[2,1],r[2,2],0],
-                #                  [0,0,0,1]])
 
                 r4x4 = np.array([[r[0,0],r[1,0],r[2,0],0],
                                  [r[0,1],r[1,1],r[2,1],0],
                                  [r[0,2],r[1,2],r[2,2],0],
                                  [0,0,0,1]])
 
-
-
                 # print(r)       
                 # print(r4x4)    
                 
-                # glMultMatrixf(r)
+                glMultMatrixd(r4x4)
 
-                glMultMatrixf(r4x4)
 
                 glTranslated(0, 0, -200)
 
@@ -141,8 +154,6 @@ if __name__ == "__main__":
 
     glTranslated(0, 0, 100)
 
-
-
     for _ in range(4):
         glRotated(25,0,1,0)
         glTranslated(35, 0, 0)
@@ -156,17 +167,12 @@ if __name__ == "__main__":
 
     glClearColor(0.85, 0.85, 0.85, 1);
 
-
-
     # a = (GLfloat * 16)()
     # mvm = glGetFloatv(GL_MODELVIEW_MATRIX, a)
     # print(list(a))
 
     glPushMatrix();
-
  
     pyglet.clock.schedule_interval(timer, 1/10);
-
-
 
     pyglet.app.run()
