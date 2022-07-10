@@ -43,44 +43,34 @@ def timer(self):
                 try:
                     q = json.loads(last_line)
                     q = Quaternion(q['quat_w'],q['quat_x'],q['quat_y'],q['quat_z'])
+                    buffer = buffer[last:] # delete everything before last newline
                 except:
                     print('invalid input')
                     print('buffer:',buffer)
-                    return
+                    buffer = ''
+                    return               
                 
-                buffer = buffer[last:] # delete everything before last newline
-
                 # delete current matrix and replace with copy of initialized matrix:
                 glPopMatrix()
                 glPushMatrix()
 
-                # q_flip = Quaternion.from_angle_axis(180, [1,0,0],degrees=True)
-                # q = q*q_flip
-
                 e = q.to_euler(degrees=True)
-                # print(e)
 
                 global init_yaw
                 if init_yaw == None:
                     init_yaw = e[2]
                     print(q)
                     print(init_yaw)
-                    # q2 = Quaternion.from_angle_axis(-init_yaw, [0,0,1],degrees=True)
-                    # print(q2)
-
-                # print(q)
-
 
                 glTranslated(0, 0, 200)   
 
-                # glRotated(-init_yaw,0,0,1)
-                # glRotated(180,1,0,0)
+                q_yaw = Quaternion.from_euler(0,0,init_yaw,degrees=True)
 
-                # q2 = Quaternion.from_angle_axis(-180, [0,0,1],degrees=True)
-                # q2 = Quaternion.from_euler(0,0,180,degrees=True)
-                q2 = Quaternion.from_euler(0,0,init_yaw,degrees=True)
+                q = q_yaw*q
 
-                q = q2*q
+                #flip model around x axis, because sensor is upside down:
+                q_flip = Quaternion.from_angle_axis(180, [1,0,0],degrees=True)
+                q = q*q_flip
 
                 r = np.array(q.to_rot())
 
@@ -88,31 +78,24 @@ def timer(self):
                                  [r[0,1],r[1,1],r[2,1],0],
                                  [r[0,2],r[1,2],r[2,2],0],
                                  [0,0,0,1]])
-
                 
                 glMultMatrixd(r4x4)
 
                 glTranslated(0, 0, -200)
 
 
-
-
-
 @window.event
 def on_draw():
-    # print('draw')
     window.clear()
     visualization.draw(scene)
 
 if __name__ == "__main__":
-    # Setando estados para visualização da câmera
     glViewport(0, 0, 500,500)
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH)
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
     glOrtho(0.0, 500, 0.0, 500, 0.0, 1.0)
 
-    # Changing the starting position of the center
     glMatrixMode (GL_MODELVIEW)
     glLoadIdentity()
 
