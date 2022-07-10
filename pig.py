@@ -38,7 +38,8 @@ def timer(self):
         if last >= 0:
             second_last = buffer[0:last].rfind('\n')
             if second_last >= 0:
-                last_line = buffer[second_last+1:last] # extract last line starting and ending with newline
+                # extract last full line (starts and ends with newline):
+                last_line = buffer[second_last+1:last]
                 
                 try:
                     q = json.loads(last_line)
@@ -50,7 +51,7 @@ def timer(self):
                     buffer = ''
                     return               
                 
-                # delete current matrix and replace with copy of initialized matrix:
+                # delete current matrix and replace with initial matrix:
                 glPopMatrix()
                 glPushMatrix()
 
