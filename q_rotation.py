@@ -65,7 +65,7 @@ def timer(self):
 
                 glTranslated(0, 0, 200)   
 
-                q_yaw = Quaternion.from_euler(0,0,init_yaw,degrees=True)
+                q_yaw = Quaternion.from_euler(0,0,180-init_yaw,degrees=True)
 
                 q = q_yaw*q
 
