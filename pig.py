@@ -71,13 +71,16 @@ def timer(self):
 
                 glTranslated(0, 0, 200)   
 
-                # glRotated(init_yaw,0,0,1) #this doesn't work, it rotates using euler angles and it needs to rotate around the z axis
+                # glRotated(-init_yaw,0,0,1)
+                # glRotated(180,1,0,0)
 
                 # q2 = Quaternion.from_angle_axis(-180, [0,0,1],degrees=True)
-                # q2 = Quaternion.from_euler(0,0,90,degrees=True)
+                # q2 = Quaternion.from_euler(0,0,180,degrees=True)
+                q2 = Quaternion.from_euler(0,0,init_yaw,degrees=True)
                 # print(q2)
                 # print(q)
                 # q = q*q2
+                q = q2*q
                 # print(q)
 
                 # q3 = Quaternion.from_angle_axis(180, [0,1,0],degrees=True)
@@ -91,6 +94,7 @@ def timer(self):
                                  [0,0,0,1]])
 
                 # print(r)       
+                
                 # print(r4x4)    
                 
                 glMultMatrixd(r4x4)
@@ -98,6 +102,9 @@ def timer(self):
 
                 glTranslated(0, 0, -200)
 
+                # a = (GLfloat * 16)()
+                # mvm = glGetFloatv(GL_MODELVIEW_MATRIX, a)
+                # print(list(a))
 
 
 
@@ -170,6 +177,47 @@ if __name__ == "__main__":
     # a = (GLfloat * 16)()
     # mvm = glGetFloatv(GL_MODELVIEW_MATRIX, a)
     # print(list(a))
+
+    glTranslated(0, 0, 200)   
+    glRotated(-110,0,0,1)
+    glRotated(-4,1,0,0)
+    glTranslated(0, 0, -200)  
+
+    # a = (GLfloat * 16)()
+    # mvm = glGetFloatv(GL_MODELVIEW_MATRIX, a)
+
+    a = (GLdouble * 16)()
+    mvm = glGetDoublev(GL_MODELVIEW_MATRIX, a)
+
+    print(list(a)) 
+    array = np.array(list(a)).reshape([4,4])
+    print(array)
+
+    # round very small numbers in matrix to 0:
+    array[0,0]=0
+    array[1,1]=0
+    array[1,2]=0
+    array[2,0]=0
+    array[3,0]=0
+
+    # array[1,0]=0.75
+    # array[0,2]=0.74
+    # array[2,1]=0.74
+
+    array[0,1]=0
+    array[0,2]=1
+    array[1,0]=1
+    array[2,1]=1
+    array[2,2]=0
+    
+    # round translation to round numbers:
+    array[3,1]=-150
+    array[3,2]=-600
+
+    print(array)
+
+    glLoadMatrixd(array)
+
 
     glPushMatrix();
  
